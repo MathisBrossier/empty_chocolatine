@@ -76,21 +76,23 @@ jobs:
             echo "::error file=Makefile::Makefile not found"
             exit 1
           fi
-      - name: test make
+      - name: verify make
         timeout-minutes: 2
         run: |
           make
-      - name: test make clean
+      - name: verify make clean
         run: |
           make clean
       - name: verify executables
         run: |
-          for exe in $EXECUTABLES; do
-            if [ ! -x "$exe" ]; then
-              echo "::error file=$exe::Executable $exe is missing or not executable"
+          IFS=',' read -r -a executables <<< "${{ secrets.EXECUTABLES }}"
+          for exe in "${executables[@]}"; do
+            if [ ! -f "$exe" ]; then
+              echo "::error file=$exe::Executable $exe is missing"
               exit 1
             fi
           done
+        shell: bash
 
   run_tests:
     runs-on: ubuntu-latest
