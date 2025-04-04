@@ -27,14 +27,6 @@ jobs:
           else
             exit 0
           fi
-      - name: set output
-        id: set_output
-        run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "skip=true" >> $GITHUB_ENV
-          else
-            echo "skip=false" >> $GITHUB_ENV
-          fi
 
   check_coding_style:
     needs: condition
