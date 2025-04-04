@@ -37,10 +37,11 @@ jobs:
     container: ghcr.io/epitech/coding-style-checker:latest
     steps:
       - name: checkout code
-        uses: actions/checkout
-      - name: run coding_style check
+        uses: actions/checkout@v4
+      - name: run coding_style checker
         run: check.sh $(pwd) $(pwd)
       - name: anotate errors
+        id : anotate_errors
         run: |
           if [ -f coding-style-reports.log ]; then
             if [ -s coding-style-reports.log ]; then
