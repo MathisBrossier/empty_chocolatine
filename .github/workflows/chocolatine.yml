@@ -29,7 +29,12 @@ jobs:
           fi
       - name: set output
         id: set_output
-        run: echo "::set-output name=skip::${{ env.skip }}"
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "skip=true" >> $GITHUB_ENV
+          else
+            echo "skip=false" >> $GITHUB_ENV
+          fi
 
   check_coding_style:
     needs: condition
