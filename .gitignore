@@ -1,0 +1,5 @@
+bin
+include/garbage.h
+include/my.h
+*.log
+my_world
