@@ -10,8 +10,8 @@ on:
       - 'ga-ignore-*'
 
 env:
-  MIRROR_URL: ${{ secrets.MIRROR_URL }}
-  EXECUTABLES: ${{ secrets.EXECUTABLES }}
+  MIRROR_URL: "git@github.com:MathisBrossier/empty_chocolatine.git"
+  EXECUTABLES: "my_world"
   GIT_SSH_PRIVATE_KEY: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
   skip: false
 
@@ -58,7 +58,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: check_coding_style
     container: epitechcontent/epitest-docker
-    
     steps:
       - name: checkout code
         uses: actions/checkout@v4
