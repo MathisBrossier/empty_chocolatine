@@ -37,7 +37,6 @@ $(NAME):
 clean:
 	rm -f a.out
 	rm -rf bin
-	rm -f $(NAME)
 
 fclean: clean
 	make -C libs/garbage_collector fclean
