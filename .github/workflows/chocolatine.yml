@@ -1,0 +1,114 @@
+name: chocolatine
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches-ignore:
+      - 'ga-ignore-*'
+  push:
+    branches-ignore:
+      - 'ga-ignore-*'
+
+env:
+  MIRROR_URL: ${{ secrets.MIRROR_URL }}
+  EXECUTABLES: ${{ secrets.EXECUTABLES }}
+  GIT_SSH_PRIVATE_KEY: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+  skip: false
+
+jobs:
+  condition:
+    runs-on: ubuntu-latest
+    steps:
+      - name: check conditions
+        id: check_conditions
+        run: |
+          if [[ "${{ github.repository }}" == "${{ env.MIRROR_URL }}" ]]; then
+            exit 1
+          else
+            exit 0
+          fi
+      - name: set output
+        id: set_output
+        run: echo "::set-output name=skip::${{ env.skip }}"
+
+  check_coding_style:
+    needs: condition
+    runs-on: ubuntu-latest
+    container: ghcr.io/epitech/coding-style-checker:latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout
+      - name: run coding_style check
+        run: check.sh $(pwd) $(pwd)
+      - name: anotate errors
+        run: |
+          if [ -f coding-style-reports.log ]; then
+            if [ -s coding-style-reports.log ]; then
+              echo "Errors found in coding-style-reports.log"
+              while IFS= read -r file line msg; do
+                echo "::error file=$file,line=$line::error on $file at line $line, msg: $msg"
+              done < coding-style-reports.log
+              exit 1
+            else 
+              echo "No errors found in coding-style-reports.log"
+            fi
+          else
+            echo "No coding-style-reports.log file found"
+          fi
+
+  check_program_compilation:
+    runs-on: ubuntu-latest
+    needs: check_coding_style
+    container: epitechcontent/epitest-docker
+    
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: verify makefile
+        run: |
+          if [ ! -f Makefile ]; then
+            echo "::error file=Makefile::Makefile not found"
+            exit 1
+          fi
+      - name: test make
+        timeout-minutes: 2
+        run: |
+          make
+      - name: test make clean
+        run: |
+          make clean
+      - name: verify executables
+        run: |
+          for exe in $EXECUTABLES; do
+            if [ ! -x "$exe" ]; then
+              echo "::error file=$exe::Executable $exe is missing or not executable"
+              exit 1
+            fi
+          done
+
+  run_tests:
+    runs-on: ubuntu-latest
+    needs: [check_coding_style, check_program_compilation]
+    container: epitechcontent/epitest-docker
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: run tests
+        timeout-minutes: 2
+        run: |
+          make tests_run
+
+  push_to_mirror:
+    if: github.event_name == 'push'
+    needs: [check_coding_style, check_program_compilation, run_tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: push_to_mirror
+        uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url:
+            ${{ env.MIRROR_URL }}
+          ssh_private_key:
+            ${{ env.GIT_SSH_PRIVATE_KEY }}

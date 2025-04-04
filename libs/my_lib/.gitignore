@@ -1,0 +1,10 @@
+*.gcda
+*.gcno
+unit_tests
+tests
+*.o
+*.a
+.vscode
+obj
+libmy.a
+*.log
