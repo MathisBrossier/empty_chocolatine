@@ -77,7 +77,7 @@ jobs:
           make clean
       - name: verify executables
         run: |
-          IFS=',' read -r -a executables <<< "${{ secrets.EXECUTABLES }}"
+          IFS=',' read -ra executables <<< "$EXECUTABLES"
           for exe in "${executables[@]}"; do
             if [ ! -f "$exe" ]; then
               echo "::error file=$exe::Executable $exe is missing"
